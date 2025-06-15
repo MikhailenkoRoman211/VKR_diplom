@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
-import ttkbootstrap as tb  # pip install ttkbootstrap
+import ttkbootstrap as tb
 
 from data_collector import DataCollector
 from data_processor import DataProcessor
@@ -24,7 +24,6 @@ matplotlib.use("Agg")
 
 
 class ToolTip:
-    """Простой tooltip для любого виджета."""
     def __init__(self, widget, text: str):
         self.widget = widget
         self.text = text
@@ -53,7 +52,6 @@ class ToolTip:
 
 
 class CalendarDialog(tk.Toplevel):
-    """Простой календарь для выбора даты, центрируется над окном-родителем."""
     def __init__(self, master, entry: ttk.Entry):
         super().__init__(master)
         self.entry = entry
@@ -61,28 +59,21 @@ class CalendarDialog(tk.Toplevel):
         self.title("Выберите дату")
         self.resizable(False, False)
 
-        # Попытаемся взять текущую дату из поля, иначе — сегодня
         try:
             d = datetime.datetime.strptime(entry.get(), "%Y-%m-%d").date()
         except Exception:
             d = datetime.date.today()
         self.year, self.month = d.year, d.month
 
-        # Навигация месяцев
         header = ttk.Frame(self)
         header.pack(padx=10, pady=5)
         ttk.Button(header, text="<", width=2, command=self._prev_month).pack(side="left")
         self.lbl_month = ttk.Label(header, text="")
         self.lbl_month.pack(side="left", padx=12)
         ttk.Button(header, text=">", width=2, command=self._next_month).pack(side="left")
-
-        # Фрейм дней
         self.frm_days = ttk.Frame(self)
         self.frm_days.pack(padx=10, pady=5)
-
         self._build_calendar()
-
-        # Центрируем диалог над master
         self.update_idletasks()
         mx = master.winfo_rootx()
         my = master.winfo_rooty()
@@ -149,23 +140,16 @@ class App(tb.Window):
         self.geometry("900x620")
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-
-        # Вкладки
         self.nb = ttk.Notebook(self)
         self.nb.grid(row=0, column=0, sticky="nsew")
-
-        # Строка состояния
         self.status_bar = ttk.Label(self, text="Готово", relief="sunken", anchor="w")
         self.status_bar.grid(row=1, column=0, sticky="ew")
-
-        # Хранилища данных
         self.raw_df: pd.DataFrame | None = None
         self.X: pd.DataFrame | None = None
         self.y: pd.Series | None = None
         self.mm: ModelManager | None = None
         self.y_pred: np.ndarray | None = None
         self.weights: pd.Series | None = None
-
         self._build_tab_data()
         self._build_tab_portfolio()
         self._build_tab_model()
@@ -177,7 +161,6 @@ class App(tb.Window):
         for c in range(4):
             tab.columnconfigure(c, weight=1)
 
-        # С (дата)
         ttk.Label(tab, text="С (ГОД-МЕСЯЦ-ДЕНЬ)").grid(
             row=0, column=0, sticky="w", padx=8, pady=6
         )
@@ -188,7 +171,6 @@ class App(tb.Window):
                    command=lambda: CalendarDialog(self, self.ent_from))\
             .grid(row=0, column=2, sticky="w")
 
-        # По (дата)
         ttk.Label(tab, text="По").grid(
             row=1, column=0, sticky="w", padx=8, pady=6
         )
@@ -199,7 +181,6 @@ class App(tb.Window):
                    command=lambda: CalendarDialog(self, self.ent_to))\
             .grid(row=1, column=2, sticky="w")
 
-        # Листинг
         ttk.Label(tab, text="Листинг").grid(row=0, column=3, sticky="w")
         self.combo_lvl = ttk.Combobox(
             tab, values=[1, 2, "1+2"], state="readonly", width=7
@@ -207,18 +188,15 @@ class App(tb.Window):
         self.combo_lvl.set("1")
         self.combo_lvl.grid(row=0, column=3, sticky="e", padx=8)
 
-        # Тикеры (сдвинуто под даты)
         ttk.Label(tab, text="Тикеры (через запятую)").grid(
             row=2, column=0, sticky="w", padx=8, pady=(12,0)
         )
         self.ent_tickers = ttk.Entry(tab)
         self.ent_tickers.grid(row=2, column=1, columnspan=3, sticky="ew", padx=8, pady=(12,0))
 
-        # Прогрессбар и метка
         self.prog = ttk.Progressbar(tab, mode="indeterminate")
         self.prog.grid(row=3, columnspan=4, sticky="ew", padx=8, pady=15)
 
-        # Кнопки по центру
         ttk.Button(tab, text="Собрать", command=self.collect_async)\
             .grid(row=5, column=1, padx=6, pady=10)
         ttk.Button(tab, text="Загрузить CSV", command=self.load_csv)\
